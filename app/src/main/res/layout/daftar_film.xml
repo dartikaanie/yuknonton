@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_view"
+    android:layout_gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp"
+    card_view:cardCornerRadius="4dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/poster"
+            android:layout_width="150dp"
+            android:layout_height="220dp"
+            android:layout_marginBottom="4dp"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/judul"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_toRightOf="@id/poster"
+            android:text="Judul"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_below="@id/judul"
+            android:layout_toRightOf="@id/poster"
+            android:adjustViewBounds="false"
+            android:background="@drawable/rating"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="3dp"
+            android:layout_marginTop="3dp"/>
+
+        <TextView
+            android:id="@+id/rate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/judul"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="12dp"
+            android:layout_toRightOf="@id/imageView"
+            android:text="Rate" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_toRightOf="@id/poster"
+            android:orientation="horizontal">
+
+
+        </LinearLayout>
+    </RelativeLayout>
+
+
+    <!---->
+    <!--<android.support.constraint.ConstraintLayout-->
+        <!--android:id="@+id/relativeLayout"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:padding="8dp">-->
+
+        <!--<ImageView-->
+            <!--android:id="@+id/imageView"-->
+            <!--android:layout_width="42dp"-->
+            <!--android:layout_height="42dp"-->
+            <!--android:layout_marginLeft="180dp"-->
+            <!--android:layout_marginStart="180dp"-->
+            <!--android:layout_marginTop="8dp"-->
+            <!--android:background="@android:drawable/btn_star_big_on"-->
+            <!--card_view:layout_constraintEnd_toStartOf="@+id/rate"-->
+            <!--card_view:layout_constraintStart_toStartOf="parent"-->
+            <!--card_view:layout_constraintTop_toBottomOf="@+id/judul"-->
+            <!--tools:ignore="RtlCompat" />-->
+
+        <!--<TextView-->
+            <!--android:id="@+id/rate"-->
+            <!--android:layout_width="146dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginBottom="137dp"-->
+            <!--android:layout_marginEnd="8dp"-->
+            <!--android:layout_marginLeft="32dp"-->
+            <!--android:layout_marginRight="8dp"-->
+            <!--android:layout_marginStart="32dp"-->
+            <!--android:layout_marginTop="90dp"-->
+            <!--android:text="Remarks"-->
+            <!--card_view:layout_constraintBottom_toBottomOf="parent"-->
+            <!--card_view:layout_constraintEnd_toEndOf="parent"-->
+            <!--card_view:layout_constraintStart_toEndOf="@+id/imageView"-->
+            <!--card_view:layout_constraintTop_toTopOf="parent" />-->
+
+        <!--<TextView-->
+            <!--android:id="@+id/judul"-->
+            <!--android:layout_width="177dp"-->
+            <!--android:layout_height="38dp"-->
+            <!--android:layout_marginBottom="20dp"-->
+            <!--android:layout_marginEnd="4dp"-->
+            <!--android:layout_marginLeft="17dp"-->
+            <!--android:layout_marginRight="4dp"-->
+            <!--android:layout_marginStart="17dp"-->
+            <!--android:layout_marginTop="40dp"-->
+            <!--android:text="Judul"-->
+            <!--android:textSize="18sp"-->
+            <!--android:textStyle="bold"-->
+            <!--card_view:fontFamily="cursive"-->
+            <!--card_view:layout_constraintBottom_toTopOf="@+id/imageView"-->
+            <!--card_view:layout_constraintEnd_toEndOf="parent"-->
+            <!--card_view:layout_constraintHorizontal_bias="0.0"-->
+            <!--card_view:layout_constraintStart_toEndOf="@+id/poster"-->
+            <!--card_view:layout_constraintTop_toTopOf="parent"-->
+            <!--card_view:layout_constraintVertical_bias="1.0" />-->
+
+        <!--<ImageView-->
+            <!--android:id="@+id/poster"-->
+            <!--android:layout_width="146dp"-->
+            <!--android:layout_height="220dp"-->
+            <!--android:layout_marginTop="20dp"-->
+            <!--android:paddingRight="0dp"-->
+            <!--android:scaleType="centerCrop"-->
+            <!--card_view:layout_constraintStart_toStartOf="parent"-->
+            <!--card_view:layout_constraintTop_toTopOf="parent" />-->
+
+    <!--</android.support.constraint.ConstraintLayout>-->
+</android.support.v7.widget.CardView>

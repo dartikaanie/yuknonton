@@ -1,17 +1,32 @@
 package com.example.dara.yuknonton;
 
+import android.annotation.SuppressLint;
+import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.media.midi.MidiOutputPort;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.support.v7.widget.SearchView;
 import android.widget.Toast;
 
+import com.example.dara.yuknonton.db.AppDatabase;
+import com.example.dara.yuknonton.db.NowPlaying;
+import com.example.dara.yuknonton.db.upComing;
 import com.example.dara.yuknonton.model.MovieItem;
 import com.example.dara.yuknonton.model.MovieList;
 
@@ -24,7 +39,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity implements MovieListAdapter.OnMovieItemClicked{
+public class MainActivity extends AppCompatActivity implements MovieListAdapter.OnMovieItemClicked, SearchView.OnQueryTextListener{
 
 //    private TextView textView;
 
@@ -32,6 +47,9 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
     ArrayList<MovieItem> daftarFilm = new ArrayList<>();
     RecyclerView rvMovieList;
     MovieListAdapter movieListAdapter;
+    ProgressBar progressBar;
+
+    AppDatabase basisData;
 
 
     @Override
@@ -51,11 +69,28 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
 
         rvMovieList = findViewById(R.id.rv_daftar);
         rvMovieList.setAdapter(movieListAdapter);
-        rvMovieList.setLayoutManager(new LinearLayoutManager(this));
+
+        //mengubahh tampilah ketika rotate
+        int orientasi = getResources().getConfiguration().orientation;
+        if(orientasi == Configuration.ORIENTATION_PORTRAIT){
+            rvMovieList.setLayoutManager(new LinearLayoutManager(this));
+        }else{
+
+            rvMovieList.setLayoutManager(new GridLayoutManager(this,2));
+        }
+
 
 
         SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
         int mode = preferences.getInt("status_movies",1);
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+        rvMovieList.setVisibility(View.INVISIBLE);
+
+        basisData = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "tmdb.db")
+                .allowMainThreadQueries()
+                .build();
+
         if( mode == 1){
             getNowPlayingMovies();
         }else{
@@ -66,7 +101,15 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.menuSearch);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+        if (searchView != null) {
+            searchView.setOnQueryTextListener(this);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -97,11 +140,10 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
              Toast.makeText(this, "Up Coming Movies", Toast.LENGTH_SHORT).show();
              getUpcomingMovies();
              break;
-        }
-        if (item.getItemId() == R.id.menu_refresh) {
-
 
         }
+
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -112,30 +154,57 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
 //        task.execute();ata
 
 //        loadDummyData();
-        String API_BASE_URL = "https://api.themoviedb.org";
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(API_BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        TmdbClient client = retrofit.create(TmdbClient.class);
+        if(konekkah()){
+            rvMovieList.setVisibility(View.INVISIBLE);
+            progressBar.setVisibility(View.VISIBLE);
 
-        Call<MovieList> call = client.getNowPlayingMovies("4c180b85240811f5521423090f06d6cc");
-        call.enqueue(new Callback<MovieList>() {
-            @Override
-            public void onResponse(Call<MovieList> call, Response<MovieList> response) {
-                Toast.makeText(MainActivity.this, "Berhasil", Toast.LENGTH_SHORT).show();
-                MovieList movieList =response.body();
-                List<MovieItem> listMovieItem = movieList.results;
-                movieListAdapter.setDataFilm(new ArrayList<MovieItem>(listMovieItem));
 
-                getSupportActionBar().setTitle("Now Paying");
+            String API_BASE_URL = "https://api.themoviedb.org";
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(API_BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            TmdbClient client = retrofit.create(TmdbClient.class);
+
+            Call<MovieList> call = client.getNowPlayingMovies("4c180b85240811f5521423090f06d6cc");
+            call.enqueue(new Callback<MovieList>() {
+                @Override
+                public void onResponse(Call<MovieList> call, Response<MovieList> response) {
+                    rvMovieList.setVisibility(View.VISIBLE);
+                    Toast.makeText(MainActivity.this, "Berhasil", Toast.LENGTH_SHORT).show();
+                    MovieList movieList =response.body();
+                    List<MovieItem> listMovieItem = movieList.results;
+
+                    //menyimpan ke database
+//                    saveNowPlayingToDb(listMovieItem);
+
+                    movieListAdapter.setDataFilm(new ArrayList<MovieItem>(listMovieItem));
+
+                    getSupportActionBar().setTitle("Now Paying");
+
+                }
+
+                @Override
+                public void onFailure(Call<MovieList> call, Throwable t) {
+                    Toast.makeText(MainActivity.this, "Gagal", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }else{
+            //jika tidak konek internet. mengambil data ke datbase
+            List<NowPlaying> listNowPlaying = basisData.nowPlayingDao().getAllNowPlaying();
+            List<MovieItem> movieItemList = new ArrayList<>();
+            for(NowPlaying nowPlaying : listNowPlaying){
+                MovieItem m = new MovieItem(
+                        nowPlaying.id,
+                        nowPlaying.title,
+                        nowPlaying.overview,
+                        nowPlaying.vote_average,
+                        nowPlaying.realease_date,
+                        nowPlaying.poster_path
+                );
+                movieItemList.add(m);
             }
-
-            @Override
-            public void onFailure(Call<MovieList> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Gagal", Toast.LENGTH_SHORT).show();
-            }
-        });
+        }
 
         SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -146,30 +215,55 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
 
     private void getUpcomingMovies()  {
 
-        String API_BASE_URL = "https://api.themoviedb.org";
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(API_BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        TmdbClient client = retrofit.create(TmdbClient.class);
+        progressBar.setVisibility(View.VISIBLE);
+        rvMovieList.setVisibility(View.INVISIBLE);
+        if(konekkah()){
+            String API_BASE_URL = "https://api.themoviedb.org";
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(API_BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            TmdbClient client = retrofit.create(TmdbClient.class);
 
-        Call<MovieList> call = client.getUpcomingMovies("4c180b85240811f5521423090f06d6cc");
-        call.enqueue(new Callback<MovieList>() {
-            @Override
-            public void onResponse(Call<MovieList> call, Response<MovieList> response) {
-                Toast.makeText(MainActivity.this, "Berhasil", Toast.LENGTH_SHORT).show();
-                MovieList movieList =response.body();
-                List<MovieItem> listMovieItem = movieList.results;
-                movieListAdapter.setDataFilm(new ArrayList<MovieItem>(listMovieItem));
-                getSupportActionBar().setTitle("Up Coming");
+            Call<MovieList> call = client.getUpcomingMovies("4c180b85240811f5521423090f06d6cc");
+            call.enqueue(new Callback<MovieList>() {
+                @Override
+                public void onResponse(Call<MovieList> call, Response<MovieList> response) {
+                    Toast.makeText(MainActivity.this, "Berhasil", Toast.LENGTH_SHORT).show();
+                    rvMovieList.setVisibility(View.VISIBLE);
+                    MovieList movieList =response.body();
 
+//                    saveUpComingToDb();
+
+                    List<MovieItem> listMovieItem = movieList.results;
+                    movieListAdapter.setDataFilm(new ArrayList<MovieItem>(listMovieItem));
+                    getSupportActionBar().setTitle("Up Coming");
+
+
+                }
+
+                @Override
+                public void onFailure(Call<MovieList> call, Throwable t) {
+                    Toast.makeText(MainActivity.this, "Gagal", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }else{
+            //jika tidak konek internet. mengambil data ke datbase
+            List<upComing> listUpComing = basisData.upComingDao().getAllUpComing();
+            List<MovieItem> movieItemList = new ArrayList<>();
+            for(upComing upComing : listUpComing){
+                MovieItem m = new MovieItem(
+                        upComing.id,
+                        upComing.title,
+                        upComing.overview,
+                        upComing.vote_average,
+                        upComing.realease_date,
+                        upComing.poster_path
+                );
+                movieItemList.add(m);
             }
+        }
 
-            @Override
-            public void onFailure(Call<MovieList> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Gagal", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -177,9 +271,6 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
         editor.commit();
 
     }
-
-
-
 
     @Override
     public void movieItemClicked(MovieItem movieItem) {
@@ -193,6 +284,72 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
     }
 
 
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        Toast.makeText(this, "Cari . . .", Toast.LENGTH_SHORT).show();
+
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        String cariMovie = newText.toLowerCase();
+        ArrayList<MovieItem> newList = new ArrayList<>();
+        Toast.makeText(this, "Cari..", Toast.LENGTH_SHORT).show();
+        for(MovieItem item : daftarFilm){
+            String name = item.getTitle().toLowerCase();
+            if(name.toLowerCase().contains(cariMovie)){
+                newList.add(item);
+            }
+
+        }
+        movieListAdapter.setFilter(newList);
+        return true;
+    }
+
+    public void saveNowPlayingToDb(List<MovieItem> movieList){
+        for (MovieItem  m : movieList){
+            NowPlaying nowPlaying = new NowPlaying();
+            nowPlaying.title = m.getTitle();
+            nowPlaying.id = m.getId();
+            nowPlaying.overview = m.getOverview();
+            nowPlaying.vote_average = m.getVote_average();
+            nowPlaying.poster_path = m.getPoster_path();
+            nowPlaying.realease_date = m.getRelease_date();
+
+            basisData.nowPlayingDao().insertNowPlayingMovie(nowPlaying);
+
+        }
+//        basisData.nowPlayingDao().insertNowPlayingMovies();
+    }
+
+    public void saveUpComingToDb(List<MovieItem> movieList){
+        for (MovieItem  m : movieList){
+            upComing upComing = new upComing();
+            upComing.title = m.getTitle();
+            upComing.id = m.getId();
+            upComing.overview = m.getOverview();
+            upComing.vote_average = m.getVote_average();
+            upComing.poster_path = m.getPoster_path();
+            upComing.realease_date = m.getRelease_date();
+
+            basisData.upComingDao().insertUpComing(upComing);
+
+        }
+//        basisData.nowPlayingDao().insertNowPlayingMovies();
+    }
+
+    //method untuk mencek koneksi internet
+    public Boolean konekkah(){
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        @SuppressLint("MissingPermission") NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean konek = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
+        return konek;
+    }
 }
 
 

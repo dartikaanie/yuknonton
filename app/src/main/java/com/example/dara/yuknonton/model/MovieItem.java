@@ -55,6 +55,8 @@ public class MovieItem implements Parcelable{
         this.poster_path = poster_path;
     }
 
+
+
     public int getId() {
         return id;
     }

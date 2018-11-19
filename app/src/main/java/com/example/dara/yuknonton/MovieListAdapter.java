@@ -95,4 +95,10 @@ public class MovieListAdapter extends RecyclerView.Adapter<MovieListAdapter.Movi
         void movieItemClicked(MovieItem movieItem);
 
     }
+
+    public void setFilter(ArrayList<MovieItem> newList){
+        daftarFilm = new ArrayList<>();
+        daftarFilm.addAll(newList);
+        notifyDataSetChanged();
+    }
 }

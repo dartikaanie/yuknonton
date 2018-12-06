@@ -17,5 +17,9 @@ public interface TmdbClient {
     Call<MovieList> getUpcomingMovies(@Query("api_key") String api_key);
 
 
-
+    @GET("/3/search/movie")
+    Call<MovieList> search(
+            @Query("api_key") String api_key,
+            @Query("query") String query
+    );
 }

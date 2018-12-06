@@ -6,10 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.media.midi.MidiOutputPort;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -113,6 +111,8 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
         return super.onCreateOptionsMenu(menu);
     }
 
+    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -157,7 +157,6 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
         if(konekkah()){
             rvMovieList.setVisibility(View.INVISIBLE);
             progressBar.setVisibility(View.VISIBLE);
-
 
             String API_BASE_URL = "https://api.themoviedb.org";
             Retrofit retrofit = new Retrofit.Builder()
@@ -238,8 +237,6 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
                     List<MovieItem> listMovieItem = movieList.results;
                     movieListAdapter.setDataFilm(new ArrayList<MovieItem>(listMovieItem));
                     getSupportActionBar().setTitle("Up Coming");
-
-
                 }
 
                 @Override
@@ -263,13 +260,10 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
                 movieItemList.add(m);
             }
         }
-
-
         SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putInt("status_movies",2);
         editor.commit();
-
     }
 
     @Override
@@ -293,17 +287,48 @@ public class MainActivity extends AppCompatActivity implements MovieListAdapter.
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        String cariMovie = newText.toLowerCase();
-        ArrayList<MovieItem> newList = new ArrayList<>();
-        Toast.makeText(this, "Cari..", Toast.LENGTH_SHORT).show();
-        for(MovieItem item : daftarFilm){
-            String name = item.getTitle().toLowerCase();
-            if(name.toLowerCase().contains(cariMovie)){
-                newList.add(item);
+//        String cariMovie = newText.toLowerCase();
+//        ArrayList<MovieItem> newList = new ArrayList<>();
+//        Toast.makeText(this, "Cari..", Toast.LENGTH_SHORT).show();
+//        for(MovieItem item : daftarFilm){
+//            String name = item.getTitle().toLowerCase();
+//            if(name.toLowerCase().contains(cariMovie)){
+//                newList.add(item);
+//            }
+////        }
+
+        String API_BASE_URL = "https://api.themoviedb.org";
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(API_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        TmdbClient client = retrofit.create(TmdbClient.class);
+
+        Call<MovieList> call = client.search("4c180b85240811f5521423090f06d6cc", newText);
+        call.enqueue(new Callback<MovieList>() {
+            @Override
+            public void onResponse(Call<MovieList> call, Response<MovieList> response) {
+                Toast.makeText(MainActivity.this, "Berhasil", Toast.LENGTH_SHORT).show();
+                rvMovieList.setVisibility(View.VISIBLE);
+                MovieList movieList =response.body();
+
+//               saveUpComingToDb();
+
+                List<MovieItem> listMovieItem = movieList.results;
+                movieListAdapter.setDataFilm(new ArrayList<MovieItem>(listMovieItem));
+                getSupportActionBar().setTitle("Now PLaying");
             }
 
-        }
-        movieListAdapter.setFilter(newList);
+            @Override
+            public void onFailure(Call<MovieList> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Gagal", Toast.LENGTH_SHORT).show();
+            }
+        });
+        SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putInt("status_movies",2);
+        editor.commit();
+
         return true;
     }
 
